@@ -274,7 +274,7 @@ public class VMTest extends IaaSRelatedFoundation {
 
 	@Test(timeout = 100)
 	public void consumptionRejectionTest() throws VMManagementException, NetworkException {
-		final ResourceConsumption con = new ResourceConsumption(1, ResourceConsumption.unlimitedProcessing, centralVM,
+		final ResourceConsumption con = pm.createConsumption(1, ResourceConsumption.unlimitedProcessing, centralVM,
 				pm, new ConsumptionEventAssert());
 		double initialUnpr = con.getUnProcessed();
 		Assert.assertFalse("Consumption registration should not succeed unless in consuming state",
@@ -585,7 +585,7 @@ public class VMTest extends IaaSRelatedFoundation {
 	public void consumptionBlocking() throws VMManagementException, NetworkException {
 		final VirtualMachine vm = pm.requestVM(va, new AlterableResourceConstraints(pm.availableCapacities),
 				pm.localDisk, 1)[0];
-		ResourceConsumption conVM = new ResourceConsumption(100000, ResourceConsumption.unlimitedProcessing, vm, pm,
+		ResourceConsumption conVM = pm.createConsumption(100000, ResourceConsumption.unlimitedProcessing, vm, pm,
 				new ConsumptionEventAssert());
 		Assert.assertFalse("A virtual machine should not allow registering a consumption in a non-running state",
 				conVM.registerConsumption());

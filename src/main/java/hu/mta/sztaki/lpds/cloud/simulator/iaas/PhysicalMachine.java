@@ -483,7 +483,7 @@ public class PhysicalMachine extends MaxMinProvider implements VMManager<Physica
 			// No we did not, lets send some more to our direct consumer
 			final double totalConsumption = tasksDue.removeAt(0);
 			final double limit = tasksDue.removeAt(0);
-			currentConsumption = new ResourceConsumption(totalConsumption, limit, directConsumer, PhysicalMachine.this,
+			currentConsumption = PhysicalMachine.this.createConsumption(totalConsumption, limit, directConsumer, PhysicalMachine.this,
 					this);
 			if (!currentConsumption.registerConsumption()) {
 				throw new IllegalStateException(

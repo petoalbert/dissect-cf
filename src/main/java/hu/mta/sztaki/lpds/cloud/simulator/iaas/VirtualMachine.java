@@ -34,6 +34,7 @@ import org.apache.commons.lang3.tuple.Triple;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VMManager.VMManagementException;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ConsumptionEventAdapter;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinConsumer;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinFairScheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.statenotifications.VMStateChangeNotificationHandler;
 import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode;
@@ -1002,8 +1003,9 @@ public class VirtualMachine extends MaxMinConsumer {
 		if (ra == null) {
 			return null;
 		}
-		ResourceConsumption cons = new ResourceConsumption(total, limit, this,
-				ra.getHost(), e);
+		MaxMinFairScheduler.Consumption cons = 
+				(MaxMinFairScheduler.Consumption)this.createConsumption(
+						total, limit, this,ra.getHost(), e);
 		if (cons.registerConsumption()) {
 			final long bgnwload = va.getBgNetworkLoad();
 			if (bgnwload > 0) {

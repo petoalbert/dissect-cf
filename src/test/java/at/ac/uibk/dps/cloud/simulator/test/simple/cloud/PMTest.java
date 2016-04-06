@@ -439,7 +439,7 @@ public class PMTest extends IaaSRelatedFoundation {
 		VirtualAppliance va = (VirtualAppliance) pm.localDisk.contents()
 				.iterator().next();
 		VirtualMachine fraudent = new VirtualMachine(va);
-		ResourceConsumption fraudentCon = new ResourceConsumption(1,
+		ResourceConsumption fraudentCon = pm.createConsumption(1,
 				ResourceConsumption.unlimitedProcessing, fraudent, pm,
 				new ConsumptionEventAssert());
 		Assert.assertFalse("Registering an unknown should fail",
@@ -687,7 +687,7 @@ public class PMTest extends IaaSRelatedFoundation {
 		VirtualAppliance va = new VirtualAppliance("Test", 1, 0);
 		pm.localDisk.registerObject(va);
 		VirtualMachine vm = new VirtualMachine(va);
-		ResourceConsumption conVM = new ResourceConsumption(100000,
+		ResourceConsumption conVM = pm.createConsumption(100000,
 				ResourceConsumption.unlimitedProcessing, vm, pm,
 				new ConsumptionEventAssert());
 		Assert.assertFalse(
@@ -719,7 +719,7 @@ public class PMTest extends IaaSRelatedFoundation {
 						}
 					}
 				});
-		ResourceConsumption consumption = new ResourceConsumption(2 * aSecond,
+		ResourceConsumption consumption = pm.createConsumption(2 * aSecond,
 				ResourceConsumption.unlimitedProcessing, pm.directConsumer, pm,
 				new ConsumptionEventAdapter());
 		consumption.registerConsumption();
@@ -738,14 +738,14 @@ public class PMTest extends IaaSRelatedFoundation {
 		long startTime = Timed.getFireCount();
 		final long totalProcessing = 1000 * aSecond;
 		// Check how long the first consumption takes
-		ResourceConsumption consumption = new ResourceConsumption(
+		ResourceConsumption consumption = pm.createConsumption(
 				totalProcessing, ResourceConsumption.unlimitedProcessing,
 				pm.directConsumer, pm, new ConsumptionEventAssert());
 		consumption.registerConsumption();
 		Timed.simulateUntilLastEvent();
 		// Ensure the second consumption takes that much time as well despite
 		// the switchoff
-		consumption = new ResourceConsumption(totalProcessing,
+		consumption = pm.createConsumption(totalProcessing,
 				ResourceConsumption.unlimitedProcessing, pm.directConsumer, pm,
 				new ConsumptionEventAssert(Timed.getFireCount()
 						+ ConsumptionEventAssert.hits.get(0) - startTime, true));
@@ -775,7 +775,7 @@ public class PMTest extends IaaSRelatedFoundation {
 	public void registerWhileSwitchedOff() throws VMManagementException,
 			NetworkException {
 		preparePM();
-		ResourceConsumption consumption = new ResourceConsumption(aSecond,
+		ResourceConsumption consumption = pm.createConsumption(aSecond,
 				ResourceConsumption.unlimitedProcessing, pm.directConsumer, pm,
 				new ConsumptionEventAdapter());
 		Assert.assertTrue("Should be able to register to a running PM",
@@ -783,7 +783,7 @@ public class PMTest extends IaaSRelatedFoundation {
 		Timed.simulateUntilLastEvent();
 		pm.switchoff(null);
 		ConsumptionEventAdapter cae = new ConsumptionEventAdapter();
-		consumption = new ResourceConsumption(aSecond,
+		consumption = pm.createConsumption(aSecond,
 				ResourceConsumption.unlimitedProcessing, pm.directConsumer, pm,
 				cae);
 		Assert.assertFalse(

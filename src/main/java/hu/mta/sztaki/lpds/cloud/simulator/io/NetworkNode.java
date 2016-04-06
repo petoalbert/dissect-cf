@@ -52,51 +52,40 @@ public class NetworkNode {
 			super(msg);
 		}
 	}
-
+	
 	/**
-	 * The instances of this class represent an individual data transfer in the
-	 * system. The visibility of the class and its members are defined so the
-	 * compiler does not need to generate access methods for the members thus
-	 * allowing fast and prompt changes in its contents.
+	 * Return a ResourceConsumption that represents an individual data transfer
+	 * in the system.
 	 * 
-	 * To create a new instance of this class, one must use the initTransfer
-	 * method of the NetworkNode.
-	 * 
-	 * <i>WARNING</i> this is an internal representation of the transfer. This
-	 * class is not supposed to be used outside of the context of the
-	 * NetworkNode.
-	 * 
-	 * @author "Gabor Kecskemeti, Distributed and Parallel Systems Group, University of Innsbruck (c) 2013"
-	 * 
+	 * @param tottr
+	 *            The amount of data to be transferred during the lifetime
+	 *            of the just created object
+	 * @param e
+	 *            Specify here the event to be fired when the just created
+	 *            object completes its transfers. With this event it is
+	 *            possible to notify the entity who initiated the transfer.
 	 */
-	static class SingleTransfer extends ResourceConsumption {
-
-		/**
-		 * This constructor describes the basic properties of an individual
-		 * transfer.
-		 * 
-		 * @param tottr
-		 *            The amount of data to be transferred during the lifetime
-		 *            of the just created object
-		 * @param e
-		 *            Specify here the event to be fired when the just created
-		 *            object completes its transfers. With this event it is
-		 *            possible to notify the entity who initiated the transfer.
-		 */
-		private SingleTransfer(final int latency, final long tottr, final double limit, final MaxMinConsumer in,
-				final MaxMinProvider out, final ResourceConsumption.ConsumptionEvent e) {
-			super(tottr, limit, in, out, e);
-			if (latency != 0) {
-				new DeferredEvent(latency) {
-					@Override
-					protected void eventAction() {
-						registerConsumption();
-					}
-				};
-			} else {
-				registerConsumption();
-			}
+	private ResourceConsumption createSingleTransfer(
+			final int latency, 
+			final long tottr, 
+			final double limit, 
+			final MaxMinConsumer in,
+			final MaxMinProvider out, 
+			final ResourceConsumption.ConsumptionEvent e) {
+		
+		final ResourceConsumption c = out.createConsumption(tottr, limit, in, out, e);
+		if (latency != 0) {
+			new DeferredEvent(latency) {
+				@Override
+				protected void eventAction() {
+					c.registerConsumption();
+				}
+			};
+		} else {
+			c.registerConsumption();
 		}
+		return c;
+		
 	}
 
 	/**
@@ -219,9 +208,9 @@ public class NetworkNode {
 	public static ResourceConsumption initTransfer(final long size, final double limit, final NetworkNode from,
 			final NetworkNode to, final ResourceConsumption.ConsumptionEvent e) throws NetworkException {
 		if (from == to) {
-			return new SingleTransfer(0, size, limit, from.diskinbws, from.diskoutbws, e);
+			return to.createSingleTransfer(0, size, limit, from.diskinbws, from.diskoutbws, e);
 		} else {
-			return new SingleTransfer(checkConnectivity(from, to), size, limit, to.inbws, from.outbws, e);
+			return to.createSingleTransfer(checkConnectivity(from, to), size, limit, to.inbws, from.outbws, e);
 		}
 	}
 
@@ -251,7 +240,7 @@ public class NetworkNode {
 	 */
 	public ResourceConsumption pushFromMemory(final long size, final double limit, boolean toDisk,
 			final ResourceConsumption.ConsumptionEvent e) {
-		return new SingleTransfer(0, size, limit, toDisk ? diskinbws : inbws, memoutbws, e);
+		return createSingleTransfer(0, size, limit, toDisk ? diskinbws : inbws, memoutbws, e);
 	}
 
 	/**
@@ -280,7 +269,7 @@ public class NetworkNode {
 	 */
 	public ResourceConsumption readToMemory(final long size, final double limit, boolean fromDisk,
 			final ResourceConsumption.ConsumptionEvent e) {
-		return new SingleTransfer(0, size, limit, meminbws, fromDisk ? diskoutbws : outbws, e);
+		return createSingleTransfer(0, size, limit, meminbws, fromDisk ? diskoutbws : outbws, e);
 	}
 
 	/**

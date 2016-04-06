@@ -63,11 +63,11 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 
 	@Test(timeout = 100)
 	public void registrationTest() {
-		ResourceConsumption con1 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		ResourceConsumption con1 = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
-		ResourceConsumption con2 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		ResourceConsumption con2 = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
-		ResourceConsumption conFaulty = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		ResourceConsumption conFaulty = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
 		conFaulty.suspend();
 		con1.registerConsumption();
@@ -100,9 +100,9 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 
 	@Test(timeout = 100)
 	public void basicConsumptionTest() {
-		ResourceConsumption con1 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		ResourceConsumption con1 = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
-		ResourceConsumption con2 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		ResourceConsumption con2 = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
 		con1.registerConsumption();
 		con2.registerConsumption();
@@ -115,9 +115,9 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 	public void eventRelationTest() {
 		ConsumptionEventAdapter cea1 = new ConsumptionEventAssert();
 		ConsumptionEventAdapter cea2 = new ConsumptionEventAssert();
-		ResourceConsumption con1 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		ResourceConsumption con1 = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, cea1);
-		ResourceConsumption con2 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen * 2,
+		ResourceConsumption con2 = offer.createConsumption(ResourceConsumptionTest.processingTasklen * 2,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, cea2);
 		con1.registerConsumption();
 		con2.registerConsumption();
@@ -137,7 +137,7 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 	@Test(timeout = 100)
 	public void simpleAssimetricProcessing() {
 		utilize = new MaxMinConsumer(ResourceConsumptionTest.permsProcessing / 2);
-		ResourceConsumption con = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		ResourceConsumption con = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
 		con.registerConsumption();
 		long before = Timed.getFireCount();
@@ -156,13 +156,13 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 		offer = new MaxMinProvider(ResourceConsumptionTest.permsProcessing * 2);
 		MaxMinProvider of2 = new MaxMinProvider(ResourceConsumptionTest.permsProcessing / 2);
 		MaxMinConsumer ut2 = new MaxMinConsumer(ResourceConsumptionTest.permsProcessing / 3);
-		ResourceConsumption c1 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		ResourceConsumption c1 = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, c1Ev);
-		ResourceConsumption c2 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		ResourceConsumption c2 = of2.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, ut2, of2, c2Ev);
-		ResourceConsumption c3 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		ResourceConsumption c3 = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, ut2, offer, c3Ev);
-		ResourceConsumption c4 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		ResourceConsumption c4 = of2.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, of2, c4Ev);
 		long startTime = Timed.getFireCount();
 		c1.registerConsumption();
@@ -192,7 +192,7 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 
 	@Test(timeout = 100)
 	public void basicLimitedProcessing() {
-		ResourceConsumption c = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		ResourceConsumption c = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumptionTest.permsProcessing / 2, utilize, offer, new ConsumptionEventAssert());
 		c.registerConsumption();
 		long before = Timed.getFireCount();
@@ -207,9 +207,9 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 	public void mixedProcessingLimits() {
 		ConsumptionEventAssert evLimited = new ConsumptionEventAssert();
 		ConsumptionEventAssert evUnlimited = new ConsumptionEventAssert();
-		ResourceConsumption cLimited = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		ResourceConsumption cLimited = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumptionTest.permsProcessing / 2, utilize, offer, evLimited);
-		ResourceConsumption cUnlimited = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		ResourceConsumption cUnlimited = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, evUnlimited);
 		cLimited.registerConsumption();
 		cUnlimited.registerConsumption();
@@ -222,9 +222,9 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 
 		evLimited = new ConsumptionEventAssert();
 		evUnlimited = new ConsumptionEventAssert();
-		cLimited = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		cLimited = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumptionTest.permsProcessing / 3, utilize, offer, evLimited);
-		cUnlimited = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+		cUnlimited = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, evUnlimited);
 		cLimited.registerConsumption();
 		cUnlimited.registerConsumption();
@@ -241,7 +241,7 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 	}
 
 	private ResourceConsumption crCons(ResourceConsumption.ConsumptionEvent ev) {
-		return new ResourceConsumption(1, ResourceConsumption.unlimitedProcessing, utilize, offer,
+		return offer.createConsumption(1, ResourceConsumption.unlimitedProcessing, utilize, offer,
 				ev == null ? new ConsumptionEventAssert() : ev);
 	}
 
@@ -279,11 +279,11 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 		MaxMinProvider prov2 = new MaxMinProvider(1);
 		MaxMinConsumer cons2 = new MaxMinConsumer(1);
 
-		new ResourceConsumption(1000, 1, new MaxMinConsumer(1), prov1, new ConsumptionEventAssert())
+		prov1.createConsumption(1000, 1, new MaxMinConsumer(1), prov1, new ConsumptionEventAssert())
 				.registerConsumption();
-		new ResourceConsumption(500, 1, cons2, prov1, new ConsumptionEventAssert()).registerConsumption();
-		new ResourceConsumption(1000, 1, cons2, prov2, new ConsumptionEventAssert()).registerConsumption();
-		new ResourceConsumption(1000, 1, new MaxMinConsumer(1), prov2, new ConsumptionEventAssert())
+		prov1.createConsumption(500, 1, cons2, prov1, new ConsumptionEventAssert()).registerConsumption();
+		prov2.createConsumption(1000, 1, cons2, prov2, new ConsumptionEventAssert()).registerConsumption();
+		prov2.createConsumption(1000, 1, new MaxMinConsumer(1), prov2, new ConsumptionEventAssert())
 				.registerConsumption();
 		Timed.simulateUntilLastEvent();
 

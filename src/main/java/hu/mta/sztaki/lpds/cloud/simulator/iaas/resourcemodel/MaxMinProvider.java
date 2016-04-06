@@ -38,7 +38,7 @@ package hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel;
  * @author "Gabor Kecskemeti, Distributed and Parallel Systems Group, University of Innsbruck (c) 2013"
  *
  */
-public class MaxMinProvider extends MaxMinFairSpreader {
+public class MaxMinProvider extends ResourceSpreader {
 	/**
 	 * Constructs a generic Max Min fairness based resource producer.
 	 * 
@@ -51,20 +51,6 @@ public class MaxMinProvider extends MaxMinFairSpreader {
 	}
 
 	/**
-	 * Translates the consumption limit update request to actually changing a
-	 * field in the resource consumption that is related to providers.
-	 * 
-	 * The limit set here is expected to reflect the processing this provider
-	 * could offer in the particular time instance with regards to the
-	 * particular resource consumption.
-	 */
-
-	@Override
-	protected void updateConsumptionLimit(final ResourceConsumption con, final double limit) {
-		con.providerLimit = limit;
-	}
-
-	/**
 	 * Uses the resource consumption's provider related processing operation to
 	 * actually offer the resources to those who are in need of them (e.g. in
 	 * case of a network transfer this means the provider actually pushes the
@@ -74,7 +60,7 @@ public class MaxMinProvider extends MaxMinFairSpreader {
 	 */
 	@Override
 	protected double processSingleConsumption(final ResourceConsumption con, final long ticksPassed) {
-		return con.doProviderProcessing(ticksPassed);
+		return ((MaxMinFairScheduler.Consumption)con).doProviderProcessing(ticksPassed);
 	}
 
 	/**
@@ -110,5 +96,16 @@ public class MaxMinProvider extends MaxMinFairSpreader {
 	@Override
 	public String toString() {
 		return "MaxMinProvider(Hash-" + hashCode() + " " + super.toString() + ")";
+	}
+
+	/**
+	 * This method returns a MaxMinFairScheduler instance to scheduler this
+	 * resource spreaders processings.
+	 * 
+	 * @return the MaxMinFairScheduler instance
+	 */
+	@Override
+	protected MaxMinFairScheduler createScheduler() {
+		return new MaxMinFairScheduler();
 	}
 }

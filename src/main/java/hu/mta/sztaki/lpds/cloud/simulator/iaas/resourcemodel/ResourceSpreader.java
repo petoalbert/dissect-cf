@@ -34,6 +34,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import hu.mta.sztaki.lpds.cloud.simulator.Timed;
 import hu.mta.sztaki.lpds.cloud.simulator.energy.powermodelling.PowerState;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption.ConsumptionEvent;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.statenotifications.PowerStateChangeNotificationHandler;
 import hu.mta.sztaki.lpds.cloud.simulator.notifications.StateDependentEventHandler;
 import hu.mta.sztaki.lpds.cloud.simulator.util.ArrayHandler;
@@ -134,6 +135,8 @@ public abstract class ResourceSpreader {
 	 * group's freq syncer object
 	 */
 	private boolean stillInDepGroup;
+	
+	protected Scheduler scheduler;
 
 	/**
 	 * This class is the core part of the unified resource consumption model of
@@ -604,7 +607,7 @@ public abstract class ResourceSpreader {
 		 * ResourceSpreader.doProcessing is called.
 		 */
 		private void updateMyFreqNow() {
-			final long newFreq = myDepGroup[0].singleGroupwiseFreqUpdater();
+			final long newFreq = myDepGroup[0].scheduler.schedule(this);
 			regularFreqMode = newFreq != 0;
 			updateFrequency(newFreq);
 		}
@@ -653,6 +656,7 @@ public abstract class ResourceSpreader {
 	 */
 	public ResourceSpreader(final double initialProcessingPower) {
 		setPerTickProcessingPower(initialProcessingPower);
+		scheduler = createScheduler();
 	}
 
 	/**
@@ -665,16 +669,46 @@ public abstract class ResourceSpreader {
 	public final FreqSyncer getSyncer() {
 		return mySyncer;
 	}
-
+	
 	/**
-	 * The entry to the lowest level schedulers in DISSECT-CF. This function is
-	 * expected to calculate for each resource consumption of this spreader the
-	 * amount of resource share it could receive.
+	 * Cretate a ResourceConsumption instance with the given parameters that
+	 * this spreader's scheduler can use.
 	 * 
-	 * @return the duration (in ticks) one has to wait before any of the
-	 *         resource consumptions in this spreader complete
+	 * @param total
+	 *            The amount of processing to be done during the lifetime of the
+	 *            just created object
+	 * @param limit
+	 *            the maximum amount of processing allowable for this particular
+	 *            resource consumption (this allows the specification of an
+	 *            upper limit of any consumption). If there is no upper limit
+	 *            needed then this value should be set with the value of the
+	 *            unlimitedProcessing field.
+	 * @param consumer
+	 *            the consumer that will benefit from the resource consumption.
+	 *            This field could be null, then the consumer must be set with
+	 *            the setConsumer() function.
+	 * @param provider
+	 *            the provider which will offer its resources for the consumer.
+	 *            This field could be null, then the provider must be set with
+	 *            the setProvider() function.
+	 * @param e
+	 *            Specify here the event to be fired when the just created
+	 *            object completes its transfers. With this event it is possible
+	 *            to notify the entity who initiated the transfer. This event
+	 *            object cannot be null. If there is no special event handling
+	 *            is needed then just create a ConsumptionEventAdapter.
+	 *           
+	 * @return the new ResourceConsumption available to this spreader's
+	 *         Scheduler
 	 */
-	protected abstract long singleGroupwiseFreqUpdater();
+	public ResourceConsumption createConsumption(
+			final double total, 
+			final double limit, 
+			final ResourceSpreader consumer,
+			final ResourceSpreader provider, 
+			final ConsumptionEvent e) {
+		return scheduler.createConsumption(total, limit, consumer, provider, e);
+	}
 
 	/**
 	 * Allows the management of the underRemoval list. When some objects are
@@ -830,6 +864,19 @@ public abstract class ResourceSpreader {
 		}
 		lastNotifTime = currentFireCount;
 	}
+	
+	/**
+	 * Implementations of this function should return a Scheduler object which
+	 * will be used to schedule the processing of this spreader and other 
+	 * spreaders in the frequency group.
+	 * TODO: in the updateMyFreq method of the FreqSyncer class, only one
+	 *       providers scheduler will be used, while the others dont do
+	 *       nothing. It contradicts in a way with the intended use of
+	 *       this methods.
+	 * 
+	 * @return a Scheduler instance to schedule the dependency group
+	 */
+	protected abstract Scheduler createScheduler();
 
 	/**
 	 * This function is expected to realign the underProcessing and
