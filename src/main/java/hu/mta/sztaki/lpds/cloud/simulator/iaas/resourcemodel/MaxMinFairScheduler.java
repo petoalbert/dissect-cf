@@ -121,6 +121,7 @@ public class MaxMinFairScheduler implements Scheduler{
 		 * just the value that is derived from the real limit last set by the
 		 * scheduler.
 		 */
+		@Override
 		public long getCompletionDistance() {
 			return completionDistance;
 		}

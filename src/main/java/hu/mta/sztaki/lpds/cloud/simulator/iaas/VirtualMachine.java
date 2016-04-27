@@ -1003,9 +1003,8 @@ public class VirtualMachine extends MaxMinConsumer {
 		if (ra == null) {
 			return null;
 		}
-		MaxMinFairScheduler.Consumption cons = 
-				(MaxMinFairScheduler.Consumption)this.createConsumption(
-						total, limit, this,ra.getHost(), e);
+		ResourceConsumption cons = this.createConsumption(
+				total, limit, this,ra.getHost(), e);
 		if (cons.registerConsumption()) {
 			final long bgnwload = va.getBgNetworkLoad();
 			if (bgnwload > 0) {

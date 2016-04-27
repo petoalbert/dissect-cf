@@ -284,6 +284,15 @@ public abstract class ResourceConsumption {
 			registered = false;
 		}
 	}
+	
+	/**
+	 * Retrieves the number of ticks it is expected to take that renders both
+	 * underProcessing and toBeProcessed as 0 (i.e., the time when the initially
+	 * specified amount of resources are completely utilized). This is again
+	 * just the value that is derived from the real limit last set by the
+	 * scheduler.
+	 */
+	public abstract long getCompletionDistance();
 
 	/**
 	 * Allows to set a provider for the consumption if the consumption is not
