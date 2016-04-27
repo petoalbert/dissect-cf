@@ -160,6 +160,31 @@ public class MaxMinFairScheduler implements Scheduler{
 		}
 		
 		/**
+		 * Simulate the processing of this consumption, either from the consumer
+		 * side (see doConsumerProcessing) or from the provider side 
+		 * (see doProviderProcessing)
+		 * 
+		 * @param ticksPassed
+		 *            the number of ticks to be simulated (i.e. how many times we
+		 *            should multiply realLimit) before offering the resources to
+		 *            the underprocessing field.
+		 * @return the amount of resources actually processed for consumption.
+		 *         Negative values mark the end of this resource consumption (i.e.
+		 *         when there is no more processing to be done for this
+		 *         consumption). Albeit such values are negative, their negativeness
+		 *         is just used as a flag and their absolute value still represent
+		 *         the amount of offered resources.
+		 */
+		@Override
+		protected double process(long ticksPassed, boolean consumer) {
+			if (consumer) {
+				return doConsumerProcessing(ticksPassed);
+			} else {
+				return doProviderProcessing(ticksPassed);
+			}
+		}
+		
+		/**
 		 * This function simulates how the provider offers the resources for its
 		 * consumer. The offered resources are put in the underprocessing field from
 		 * the toBeprocessed.

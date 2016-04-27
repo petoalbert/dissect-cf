@@ -286,6 +286,22 @@ public abstract class ResourceConsumption {
 	}
 	
 	/**
+	 * Simulate the processing of this consumption, either from the consumer
+	 * side or from the provider side 
+	 * 
+	 * @param ticksPassed
+	 *         the number of ticks to be simulated (i.e. how many times we
+	 *         should multiply realLimit) before processing resources
+	 * @return the amount of resources actually processed for consumption.
+	 *         Negative values mark the end of this resource consumption (i.e.
+	 *         when there is no more processing to be done for this
+	 *         consumption). Albeit such values are negative, their negativeness
+	 *         is just used as a flag and their absolute value still represent
+	 *         the amount of offered resources.		 
+	 */
+	protected abstract double process(long ticksPassed, boolean consumer);
+	
+	/**
 	 * Retrieves the number of ticks it is expected to take that renders both
 	 * underProcessing and toBeProcessed as 0 (i.e., the time when the initially
 	 * specified amount of resources are completely utilized). This is again

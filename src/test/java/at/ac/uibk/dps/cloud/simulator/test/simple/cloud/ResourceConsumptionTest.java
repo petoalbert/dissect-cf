@@ -25,13 +25,6 @@
 
 package at.ac.uibk.dps.cloud.simulator.test.simple.cloud;
 
-import hu.mta.sztaki.lpds.cloud.simulator.Timed;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ConsumptionEventAdapter;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinConsumer;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinProvider;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption.ConsumptionEvent;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -39,12 +32,19 @@ import org.junit.Test;
 
 import at.ac.uibk.dps.cloud.simulator.test.ConsumptionEventAssert;
 import at.ac.uibk.dps.cloud.simulator.test.ConsumptionEventFoundation;
+import hu.mta.sztaki.lpds.cloud.simulator.Timed;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ConsumptionEventAdapter;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinFairScheduler;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumer;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption.ConsumptionEvent;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceProvider;
 
 public class ResourceConsumptionTest extends ConsumptionEventFoundation {
 	public static final double processingTasklen = 1;
 	public static final double permsProcessing = processingTasklen / aSecond;
-	MaxMinProvider offer;
-	MaxMinConsumer utilize;
+	ResourceProvider offer;
+	ResourceConsumer utilize;
 	ResourceConsumption con;
 
 	public ResourceConsumption createAUnitConsumption(final ConsumptionEvent ce) {
@@ -55,8 +55,8 @@ public class ResourceConsumptionTest extends ConsumptionEventFoundation {
 
 	@Before
 	public void setupConsumption() {
-		offer = new MaxMinProvider(permsProcessing);
-		utilize = new MaxMinConsumer(permsProcessing);
+		offer = new ResourceProvider(permsProcessing, new MaxMinFairScheduler());
+		utilize = new ResourceConsumer(permsProcessing, new MaxMinFairScheduler());
 		con = createAUnitConsumption(null);
 	}
 
@@ -212,7 +212,7 @@ public class ResourceConsumptionTest extends ConsumptionEventFoundation {
 		Assert.assertFalse("Provider should not accept this consumption",
 				utilize.createConsumption(100000,
 						ResourceConsumption.unlimitedProcessing,
-						new MaxMinProvider(1) {
+						new ResourceProvider(1, new MaxMinFairScheduler()) {
 							protected boolean isAcceptableConsumption(
 									ResourceConsumption con) {
 								return false;
@@ -222,7 +222,7 @@ public class ResourceConsumptionTest extends ConsumptionEventFoundation {
 		Assert.assertFalse("Consumer should not accept this consumption",
 				utilize.createConsumption(100000,
 						ResourceConsumption.unlimitedProcessing,
-						new MaxMinConsumer(1) {
+						new ResourceConsumer(1, new MaxMinFairScheduler()) {
 							@Override
 							protected boolean isAcceptableConsumption(
 									ResourceConsumption con) {
@@ -234,7 +234,7 @@ public class ResourceConsumptionTest extends ConsumptionEventFoundation {
 
 	@Test(timeout = 100)
 	public void testLessPerformantProvider() {
-		offer = new MaxMinProvider(permsProcessing / 2);
+		offer = new ResourceProvider(permsProcessing / 2, new MaxMinFairScheduler());
 		con = offer.createConsumption(processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer,
 				new ConsumptionEventAssert(Timed.getFireCount()

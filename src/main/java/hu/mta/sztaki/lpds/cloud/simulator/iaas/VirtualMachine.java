@@ -33,7 +33,7 @@ import org.apache.commons.lang3.tuple.Triple;
 
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VMManager.VMManagementException;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ConsumptionEventAdapter;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinConsumer;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumer;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinFairScheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.statenotifications.VMStateChangeNotificationHandler;
@@ -84,7 +84,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.notifications.StateDependentEventHandl
  *         "Gabor Kecskemeti, Distributed and Parallel Systems Group, University of Innsbruck (c) 2013"
  *         "Gabor Kecskemeti, Laboratory of Parallel and Distributed Systems, MTA SZTAKI (c) 2012"
  */
-public class VirtualMachine extends MaxMinConsumer {
+public class VirtualMachine extends ResourceConsumer {
 
 	/**
 	 * This class is defined to ensure one can differentiate errors that were
@@ -372,7 +372,7 @@ public class VirtualMachine extends MaxMinConsumer {
 	 *             if the va is <i>null</i>
 	 */
 	public VirtualMachine(final VirtualAppliance va) {
-		super(0);
+		super(0, new MaxMinFairScheduler());
 		if (va == null) {
 			throw new IllegalStateException(
 					"Cannot accept nonexistent virtual appliances on instantiation");

@@ -45,9 +45,10 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ConstantConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ResourceConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.UnalterableConstraintsPropagator;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ConsumptionEventAdapter;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinConsumer;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinProvider;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinFairScheduler;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumer;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceProvider;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceSpreader;
 import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode;
 import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
@@ -68,7 +69,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.notifications.StateDependentEventHandl
  * @author "Gabor Kecskemeti, Distributed and Parallel Systems Group, University of Innsbruck (c) 2013"
  *         "Gabor Kecskemeti, Laboratory of Parallel and Distributed Systems, MTA SZTAKI (c) 2012"
  */
-public class PhysicalMachine extends MaxMinProvider implements VMManager<PhysicalMachine, ResourceConstraints> {
+public class PhysicalMachine extends ResourceProvider implements VMManager<PhysicalMachine, ResourceConstraints> {
 
 	/**
 	 * This is the default length for how long a resource allocation will be
@@ -715,7 +716,7 @@ public class PhysicalMachine extends MaxMinProvider implements VMManager<Physica
 	 * operations on the PM. E.g., the VMM's operations can be
 	 * resourceconsumptions registered between this consumer and the PM.
 	 */
-	public final MaxMinConsumer directConsumer;
+	public final ResourceConsumer directConsumer;
 	/**
 	 * shows when the PM's direct consumer cannot be used as a consumer for
 	 * tasks (in general it is only usable for external users when the PM is
@@ -811,7 +812,7 @@ public class PhysicalMachine extends MaxMinProvider implements VMManager<Physica
 	public PhysicalMachine(double cores, double perCorePocessing, long memory, Repository disk,
 			double[] turnonOperations, double[] switchoffOperations,
 			EnumMap<PowerStateKind, EnumMap<State, PowerState>> powerTransitions) {
-		super(cores * perCorePocessing);
+		super(cores * perCorePocessing, new MaxMinFairScheduler());
 		// Init resources:
 		totalCapacities = new ConstantConstraints(cores, perCorePocessing, memory);
 		internalAvailableCaps = new AlterableResourceConstraints(totalCapacities);
@@ -833,7 +834,7 @@ public class PhysicalMachine extends MaxMinProvider implements VMManager<Physica
 		}
 
 		setState(State.OFF);
-		directConsumer = new MaxMinConsumer(getPerTickProcessingPower());
+		directConsumer = new ResourceConsumer(getPerTickProcessingPower(),scheduler);
 	}
 
 	/**

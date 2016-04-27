@@ -136,7 +136,16 @@ public abstract class ResourceSpreader {
 	 */
 	private boolean stillInDepGroup;
 	
+	/**
+	 * The scheduler instance which will scheduler this spreader
+	 */
 	protected Scheduler scheduler;
+	
+	/**
+	 * This fields indicates wheter this spreader is a consumer (true) or
+	 * provider (false)
+	 */
+	protected boolean consumer;
 
 	/**
 	 * This class is the core part of the unified resource consumption model of
@@ -607,7 +616,7 @@ public abstract class ResourceSpreader {
 		 * ResourceSpreader.doProcessing is called.
 		 */
 		private void updateMyFreqNow() {
-			final long newFreq = myDepGroup[0].scheduler.schedule(this);
+			final long newFreq = myDepGroup[0].schedule();
 			regularFreqMode = newFreq != 0;
 			updateFrequency(newFreq);
 		}
@@ -653,10 +662,15 @@ public abstract class ResourceSpreader {
 	 * 
 	 * @param initialProcessingPower
 	 *            Maximum usable bandwidth in a during a single timing event
+	 * @param consumer
+	 *            true if this spreader is a consumer, false otherwise
+	 * @param scheduler
+	 *            the scheduler instance which will scheduler this spreader
 	 */
-	public ResourceSpreader(final double initialProcessingPower) {
+	public ResourceSpreader(final double initialProcessingPower, boolean consumer, Scheduler scheduler) {
 		setPerTickProcessingPower(initialProcessingPower);
-		scheduler = createScheduler();
+		this.scheduler = scheduler;
+		this.consumer = consumer;
 	}
 
 	/**
@@ -866,17 +880,14 @@ public abstract class ResourceSpreader {
 	}
 	
 	/**
-	 * Implementations of this function should return a Scheduler object which
-	 * will be used to schedule the processing of this spreader and other 
-	 * spreaders in the frequency group.
-	 * TODO: in the updateMyFreq method of the FreqSyncer class, only one
-	 *       providers scheduler will be used, while the others dont do
-	 *       nothing. It contradicts in a way with the intended use of
-	 *       this methods.
+	 * Scheduler the consumptions of this spreader
 	 * 
-	 * @return a Scheduler instance to schedule the dependency group
+	 * @return the earliest completion time among the consumptions of the
+	 *         frequency group
 	 */
-	protected abstract Scheduler createScheduler();
+	protected long schedule() {
+		return scheduler.schedule(this.mySyncer);
+	}
 
 	/**
 	 * This function is expected to realign the underProcessing and
@@ -896,7 +907,9 @@ public abstract class ResourceSpreader {
 	 *         resources. If negative then the 'con' has completed its
 	 *         processing.
 	 */
-	protected abstract double processSingleConsumption(final ResourceConsumption con, final long ticksPassed);
+	protected double processSingleConsumption(final ResourceConsumption con, final long ticksPassed) {
+		return con.process(ticksPassed, isConsumer());
+	}
 
 	/**
 	 * If it is unknown whether we are a provider or a consumer (this is usually
@@ -910,7 +923,13 @@ public abstract class ResourceSpreader {
 	 *            other party that participates in the processing with us.
 	 * @return the other resource spreader that does the processing with us
 	 */
-	protected abstract ResourceSpreader getCounterPart(final ResourceConsumption con);
+	protected ResourceSpreader getCounterPart(final ResourceConsumption con) {
+		if (isConsumer()) {
+			return con.getProvider();
+		} else {
+			return con.getConsumer();
+		}
+	}
 
 	/**
 	 * The function gets that particular resource spreader from the given
@@ -930,7 +949,13 @@ public abstract class ResourceSpreader {
 	 *         (provider/consumer) as this resource spreader object (i.e., the
 	 *         spreader on which the function was calleD)
 	 */
-	protected abstract ResourceSpreader getSamePart(final ResourceConsumption con);
+	protected ResourceSpreader getSamePart(final ResourceConsumption con) {
+		if (isConsumer()) {
+			return con.getConsumer();
+		} else {
+			return con.getProvider();
+		}
+	}
 
 	/**
 	 * Determines if a particular resource spreader is acting as a consumer or
@@ -939,7 +964,9 @@ public abstract class ResourceSpreader {
 	 * @return <i>true</i> if this resource spreader is a consumer, <i>false</i>
 	 *         otherwise
 	 */
-	protected abstract boolean isConsumer();
+	protected boolean isConsumer() {
+		return consumer;
+	}
 
 	/**
 	 * Returns the total amount of resources processed (i.e., via all past and

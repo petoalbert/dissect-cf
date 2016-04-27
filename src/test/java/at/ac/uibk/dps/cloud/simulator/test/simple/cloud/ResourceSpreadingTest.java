@@ -37,18 +37,19 @@ import at.ac.uibk.dps.cloud.simulator.test.ConsumptionEventAssert;
 import at.ac.uibk.dps.cloud.simulator.test.ConsumptionEventFoundation;
 import hu.mta.sztaki.lpds.cloud.simulator.Timed;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ConsumptionEventAdapter;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinConsumer;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinProvider;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinFairScheduler;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumer;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceProvider;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption;
 
 public class ResourceSpreadingTest extends ConsumptionEventFoundation {
-	MaxMinProvider offer;
-	MaxMinConsumer utilize;
+	ResourceProvider offer;
+	ResourceConsumer utilize;
 
 	@Before
 	public void setup() {
-		offer = new MaxMinProvider(ResourceConsumptionTest.permsProcessing);
-		utilize = new MaxMinConsumer(ResourceConsumptionTest.permsProcessing);
+		offer = new ResourceProvider(ResourceConsumptionTest.permsProcessing, new MaxMinFairScheduler());
+		utilize = new ResourceConsumer(ResourceConsumptionTest.permsProcessing, new MaxMinFairScheduler());
 	}
 
 	@Test(timeout = 100)
@@ -136,7 +137,7 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 
 	@Test(timeout = 100)
 	public void simpleAssimetricProcessing() {
-		utilize = new MaxMinConsumer(ResourceConsumptionTest.permsProcessing / 2);
+		utilize = new ResourceConsumer(ResourceConsumptionTest.permsProcessing / 2, new MaxMinFairScheduler());
 		ResourceConsumption con = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
 		con.registerConsumption();
@@ -153,9 +154,9 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 		ConsumptionEventAssert c2Ev = new ConsumptionEventAssert();
 		ConsumptionEventAssert c3Ev = new ConsumptionEventAssert();
 		ConsumptionEventAssert c4Ev = new ConsumptionEventAssert();
-		offer = new MaxMinProvider(ResourceConsumptionTest.permsProcessing * 2);
-		MaxMinProvider of2 = new MaxMinProvider(ResourceConsumptionTest.permsProcessing / 2);
-		MaxMinConsumer ut2 = new MaxMinConsumer(ResourceConsumptionTest.permsProcessing / 3);
+		offer = new ResourceProvider(ResourceConsumptionTest.permsProcessing * 2, new MaxMinFairScheduler());
+		ResourceProvider of2 = new ResourceProvider(ResourceConsumptionTest.permsProcessing / 2, new MaxMinFairScheduler());
+		ResourceConsumer ut2 = new ResourceConsumer(ResourceConsumptionTest.permsProcessing / 3, new MaxMinFairScheduler());
 		ResourceConsumption c1 = offer.createConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, c1Ev);
 		ResourceConsumption c2 = of2.createConsumption(ResourceConsumptionTest.processingTasklen,
@@ -275,15 +276,15 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 
 	@Test(timeout = 100)
 	public void groupManagement() {
-		MaxMinProvider prov1 = new MaxMinProvider(1);
-		MaxMinProvider prov2 = new MaxMinProvider(1);
-		MaxMinConsumer cons2 = new MaxMinConsumer(1);
+		ResourceProvider prov1 = new ResourceProvider(1, new MaxMinFairScheduler());
+		ResourceProvider prov2 = new ResourceProvider(1, new MaxMinFairScheduler());
+		ResourceConsumer cons2 = new ResourceConsumer(1, new MaxMinFairScheduler());
 
-		prov1.createConsumption(1000, 1, new MaxMinConsumer(1), prov1, new ConsumptionEventAssert())
+		prov1.createConsumption(1000, 1, new ResourceConsumer(1, new MaxMinFairScheduler()), prov1, new ConsumptionEventAssert())
 				.registerConsumption();
 		prov1.createConsumption(500, 1, cons2, prov1, new ConsumptionEventAssert()).registerConsumption();
 		prov2.createConsumption(1000, 1, cons2, prov2, new ConsumptionEventAssert()).registerConsumption();
-		prov2.createConsumption(1000, 1, new MaxMinConsumer(1), prov2, new ConsumptionEventAssert())
+		prov2.createConsumption(1000, 1, new ResourceConsumer(1, new MaxMinFairScheduler()), prov2, new ConsumptionEventAssert())
 				.registerConsumption();
 		Timed.simulateUntilLastEvent();
 

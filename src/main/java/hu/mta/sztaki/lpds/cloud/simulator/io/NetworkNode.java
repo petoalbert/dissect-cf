@@ -25,12 +25,13 @@
 
 package hu.mta.sztaki.lpds.cloud.simulator.io;
 
-import hu.mta.sztaki.lpds.cloud.simulator.DeferredEvent;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinConsumer;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinProvider;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption;
-
 import java.util.Map;
+
+import hu.mta.sztaki.lpds.cloud.simulator.DeferredEvent;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinFairScheduler;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumer;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceProvider;
 
 /**
  * This class represents a networked element in the system. The class also
@@ -69,8 +70,8 @@ public class NetworkNode {
 			final int latency, 
 			final long tottr, 
 			final double limit, 
-			final MaxMinConsumer in,
-			final MaxMinProvider out, 
+			final ResourceConsumer in,
+			final ResourceProvider out, 
 			final ResourceConsumption.ConsumptionEvent e) {
 		
 		final ResourceConsumption c = out.createConsumption(tottr, limit, in, out, e);
@@ -91,27 +92,27 @@ public class NetworkNode {
 	/**
 	 * Models the incoming network connections of this network node
 	 */
-	public final MaxMinConsumer inbws;
+	public final ResourceConsumer inbws;
 	/**
 	 * Models the outgoing network connections of this network node
 	 */
-	public final MaxMinProvider outbws;
+	public final ResourceProvider outbws;
 	/**
 	 * Models the write bandwidth of the disk of this network node
 	 */
-	public final MaxMinConsumer diskinbws;
+	public final ResourceConsumer diskinbws;
 	/**
 	 * Models the read bandwidth of the disk of this network node
 	 */
-	public final MaxMinProvider diskoutbws;
+	public final ResourceProvider diskoutbws;
 	/**
 	 * Models the memory write bandwidth on this network node
 	 */
-	public final MaxMinConsumer meminbws;
+	public final ResourceConsumer meminbws;
 	/**
 	 * Models the memory read bandwidth on this network node
 	 */
-	public final MaxMinProvider memoutbws;
+	public final ResourceProvider memoutbws;
 
 	/**
 	 * The name of this network node (this could be an IP or what is most
@@ -146,15 +147,15 @@ public class NetworkNode {
 	public NetworkNode(final String id, final long maxInBW, final long maxOutBW, final long diskBW,
 			final Map<String, Integer> latencymap) {
 		name = id;
-		outbws = new MaxMinProvider(maxOutBW);
-		inbws = new MaxMinConsumer(maxInBW);
-		diskinbws = new MaxMinConsumer(diskBW / 2f);
-		diskoutbws = new MaxMinProvider(diskBW / 2f);
+		outbws = new ResourceProvider(maxOutBW, new MaxMinFairScheduler());
+		inbws = new ResourceConsumer(maxInBW, new MaxMinFairScheduler());
+		diskinbws = new ResourceConsumer(diskBW / 2f, new MaxMinFairScheduler());
+		diskoutbws = new ResourceProvider(diskBW / 2f, new MaxMinFairScheduler());
 		// Just making sure we will have enough bandwidht for every operation we
 		// could possibly have
 		final double memBW = (maxOutBW + maxInBW + diskBW);
-		meminbws = new MaxMinConsumer(memBW);
-		memoutbws = new MaxMinProvider(memBW);
+		meminbws = new ResourceConsumer(memBW, new MaxMinFairScheduler());
+		memoutbws = new ResourceProvider(memBW, new MaxMinFairScheduler());
 		latencies = latencymap;
 	}
 
