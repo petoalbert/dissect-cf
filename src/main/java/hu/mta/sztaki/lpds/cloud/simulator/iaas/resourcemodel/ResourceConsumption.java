@@ -196,6 +196,24 @@ public abstract class ResourceConsumption {
 		ev = e;
 		requestedLimit = limit;
 	}
+	
+	/**
+	 * Create a consumption with the same state as the given consumption
+	 * 
+	 * @param other the consumption whose state should be copied
+	 */
+	public ResourceConsumption(ResourceConsumption other) {
+		toBeProcessed = other.toBeProcessed;
+		consumer = other.consumer;
+		provider = other.provider;
+		ev = other.ev;
+		requestedLimit = other.requestedLimit;
+		processingLimit = other.processingLimit;
+		registered = other.registered;
+		resumable = other.resumable;
+		realLimit = other.realLimit;
+		hardLimit = other.hardLimit;
+	}
 
 	/**
 	 * Provides a unified update method for the hard processing limit (which

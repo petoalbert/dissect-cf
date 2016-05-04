@@ -880,6 +880,52 @@ public abstract class ResourceSpreader {
 	}
 	
 	/**
+	 * Set the scheduler of this spreader
+	 * 
+	 * @param scheduler the scheduler instance which will scheduler the 
+	 *        resources of this spreader
+	 */
+	public void setScheduler(Scheduler scheduler) {
+		
+		ResourceSpreader[] spreaders = mySyncer.myDepGroup;
+		for (ResourceSpreader s : spreaders) {
+			s.scheduler = scheduler;
+		}
+		
+		// Transform each consumption into a form processable by the scheduler
+		for (int i=0; i<mySyncer.firstConsumerId; i++) {
+			ResourceSpreader spreader = mySyncer.myDepGroup[i];
+			
+			/*
+			 * WARNING! The following procedue has to find the index of each
+			 * consumption in the consumers lists. This may cost a lot of
+			 * (real) processing resources. We should think about that!
+			 */
+			
+			// transform consumptions in toprocess
+			for (int j=0; j<spreader.toProcess.size(); j++) {
+				ResourceConsumption c = spreader.toProcess.get(j);
+				int consumerIndex = c.getConsumer().toProcess.indexOf(c);
+				c = scheduler.createConsumption(c);
+				spreader.toProcess.set(j, c);
+				c.getConsumer().toProcess.set(consumerIndex,c);
+			}
+			// transform consumptions in underAddition
+			for (int j=0; j<spreader.underAddition.size(); j++) {
+				ResourceConsumption c = spreader.underAddition.get(j);
+				int consumerIndex = c.getConsumer().underAddition.indexOf(c);
+				c = scheduler.createConsumption(c);
+				spreader.underAddition.set(j, c);
+				c.getConsumer().underAddition.set(consumerIndex,c);
+			}
+		}
+		
+		if (mySyncer != null) {
+			mySyncer.nudge();
+		}
+	}
+	
+	/**
 	 * Scheduler the consumptions of this spreader
 	 * 
 	 * @return the earliest completion time among the consumptions of the

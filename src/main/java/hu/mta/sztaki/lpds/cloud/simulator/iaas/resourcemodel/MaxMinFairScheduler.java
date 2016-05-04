@@ -106,6 +106,17 @@ public class MaxMinFairScheduler implements Scheduler{
 		}
 		
 		/**
+		 * Create a consumption using the general consumption fields of the 
+		 * other consumption
+		 * 
+		 * @param other the consumption whose state should be copied
+		 */
+		protected Consumption(ResourceConsumption other) {
+			super(other);
+			underProcessing = 0;
+		}
+		
+		/**
 		 * Updates the completion distance field, should be called every time the
 		 * real limit is updated or when the amount of unprocessed consumption
 		 * changes.
@@ -526,6 +537,20 @@ public class MaxMinFairScheduler implements Scheduler{
 			double total, double limit, ResourceSpreader consumer, ResourceSpreader provider,
 			ResourceConsumption.ConsumptionEvent e) {
 		return new Consumption(total, limit, consumer, provider, e);
+	}
+	
+	/**
+	 * Return a Consumption instance for this scheduler, with the state of
+	 * the other consumption instance
+	 * 
+	 * @param other the consumption whose state should be copied
+	 */
+	public Consumption createConsumption(ResourceConsumption other) {
+		if (!(other instanceof Consumption)) {
+			return new Consumption(other);
+		} else {
+			return (Consumption)other;
+		}
 	}
 
 }

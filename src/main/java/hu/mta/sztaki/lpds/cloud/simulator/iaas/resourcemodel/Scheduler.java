@@ -54,4 +54,12 @@ public interface Scheduler {
 			final double total, final double limit, final ResourceSpreader consumer,
 			final ResourceSpreader provider, final ConsumptionEvent e);
 	
+	/**
+	 * Return a Consumption instance for the implementor, with the state of
+	 * the other consumption instance
+	 * 
+	 * @param other the consumption whose state should be copied
+	 */
+	public ResourceConsumption createConsumption(ResourceConsumption other);
+	
 }
