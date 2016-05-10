@@ -83,6 +83,16 @@ public class NonpreemptiveScheduler implements Scheduler{
 			super(total, limit, consumer, provider, e);
 		}
 		
+		 /**
+		  * Create a consumption using the general consumption fields of the 
+		  * other consumption
+		  * 
+		  * @param other the consumption whose state should be copied
+		  */
+		 protected Consumption(ResourceConsumption other) {
+		 	super(other);
+		 }
+		
 		/**
 		 * Return the arrivalId of this consumption
 		 * 
@@ -332,5 +342,19 @@ public class NonpreemptiveScheduler implements Scheduler{
 	public ResourceConsumption createConsumption(double total, double limit, ResourceSpreader consumer,
 			ResourceSpreader provider, ConsumptionEvent e) {
 		return new Consumption(total, limit, consumer, provider, e);
+	}
+	
+	/**
+	 * Return a Consumption instance for this scheduler, with the state of
+	 * the other consumption instance
+	 * 
+	 * @param other the consumption whose state should be copied
+	 */
+	public Consumption createConsumption(ResourceConsumption other) {
+		if (!(other instanceof Consumption)) {
+			return new Consumption(other);
+		} else {
+			return (Consumption)other;
+		}
 	}
 }
